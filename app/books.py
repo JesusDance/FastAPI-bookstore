@@ -1,13 +1,13 @@
 from typing import Annotated, Any
-from sqlmodel import select
+
 from fastapi import APIRouter, Path, Body, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
+from sqlmodel import select
 
 from app.db import SessionDep
-from app.schemas import CreateBook, ReadBook, UpdateBook, Token
-from app.models import Book, User
+from app.models import Book
+from app.schemas import CreateBook, ReadBook, UpdateBook
 from app.security import decode_token
-
 
 router = APIRouter(prefix="/bookstore", tags=["bookstore"])
 oauth2_schema = OAuth2PasswordBearer(tokenUrl="/register/login")
@@ -45,16 +45,14 @@ def get_book(session: SessionDep, book_id: int, token: TOKEN_DEP) -> Any:
         raise HTTPException(404, "Book not found")
 
     if not book_db.user_id == user_id:
-        raise HTTPException(404,
-                            "You don't have access for this book")
+        raise HTTPException(404, "You don't have access for this book")
     return book_db
 
 
 @router.patch("/{book_id}", response_model=ReadBook)
-def update_book(session: SessionDep,
-                book_id: int,
-                book: UPDATE_BOOK,
-                token: TOKEN_DEP) -> Any:
+def update_book(
+    session: SessionDep, book_id: int, book: UPDATE_BOOK, token: TOKEN_DEP
+) -> Any:
 
     book_db = session.get(Book, book_id)
     user_id = decode_token(token)
@@ -63,8 +61,7 @@ def update_book(session: SessionDep,
         raise HTTPException(404, "Book not found")
 
     if not book_db.user_id == user_id:
-        raise HTTPException(404,
-                            "You don't have access for this book")
+        raise HTTPException(404, "You don't have access for this book")
 
     updated_book = book.model_dump(exclude_unset=True)
     book_db.sqlmodel_update(updated_book)
@@ -89,4 +86,3 @@ def delete_book(session: SessionDep, book_id: int, token: TOKEN_DEP) -> Any:
     session.delete(book_db)
     session.commit()
     return {"message": "Book deleted successfully"}
-

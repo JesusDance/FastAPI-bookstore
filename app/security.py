@@ -6,7 +6,6 @@ from pwdlib import PasswordHash
 
 from fastapi import HTTPException, status
 
-
 SECRET_KEY = "secret_key1234567890qwertyuioplk"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60

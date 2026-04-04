@@ -5,9 +5,7 @@ from sqlmodel import select
 from app.schemas import UserIn, UserOut, Token
 from app.models import User
 from app.db import SessionDep
-from app.security import get_password_hash, verify_password, \
-                         create_access_token
-
+from app.security import get_password_hash, verify_password, create_access_token
 
 router = APIRouter(prefix="/register", tags=["register"])
 
@@ -16,7 +14,10 @@ USER = Annotated[UserIn, Body()]
 
 @router.post("/", response_model=UserOut, status_code=201)
 def register_user(session: SessionDep, user: USER) -> Any:
-    existing_user = session.exec(select(User).where(User.username == user.username)).first()
+    existing_user = session.exec(
+        select(User).where(User.username == user.username)
+    ).first()
+
     if existing_user:
         raise HTTPException(400, "User already exist")
     if not user:
@@ -41,7 +42,9 @@ def register_user(session: SessionDep, user: USER) -> Any:
 
 @router.post("/login", response_model=Token)
 def login_user(session: SessionDep, user: USER) -> Any:
-    existing_user = session.exec(select(User).where(User.username == user.username)).first()
+    existing_user = session.exec(
+        select(User).where(User.username == user.username)
+    ).first()
 
     if not existing_user or not verify_password(user.password, existing_user.password):
         raise HTTPException(401, "Incorrect username or password")
@@ -54,7 +57,7 @@ def login_user(session: SessionDep, user: USER) -> Any:
 def get_user(session: SessionDep, user_id: int) -> Any:
     user = session.get(User, user_id)
     if not user:
-        raise HTTPException(404,"User not found")
+        raise HTTPException(404, "User not found")
     return user
 
 
@@ -62,5 +65,3 @@ def get_user(session: SessionDep, user_id: int) -> Any:
 def get_users(session: SessionDep) -> Any:
     users = session.exec(select(User)).all()
     return users
-
-

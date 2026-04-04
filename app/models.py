@@ -30,9 +30,3 @@ class Book(BaseBook, table=True):
 
     user_id: int = Field(foreign_key="user.id")
     user: Optional[User] = Relationship(back_populates="books")
-
-
-
-
-
-

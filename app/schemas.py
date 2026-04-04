@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel
-from pydantic import EmailStr,BaseModel
-from app.models import BaseUser, User, BaseBook
+from pydantic import EmailStr, BaseModel
+from app.models import BaseUser, BaseBook
 
 
 class Token(BaseModel):
@@ -39,6 +39,4 @@ class UserOut(SQLModel):
     email: EmailStr
     full_name: str | None = None
     second_name: str | None = None
-
-    #books: list[ReadBook] | None = None
-
+    books: list[ReadBook] | None = None

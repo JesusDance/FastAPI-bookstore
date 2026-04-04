@@ -11,8 +11,8 @@ from app.db import get_session
 settings = TestingConfig()
 
 test_engine = create_engine(
-    settings.DATABASE_URL,
-    connect_args={"check_same_thread": False})
+    settings.DATABASE_URL, connect_args={"check_same_thread": False}
+)
 
 
 def override_get_session():
@@ -31,26 +31,43 @@ def create_test_db():
             password=get_password_hash("12345"),
             email="bob@gmail.com",
             full_name="Bob Dilan",
-            second_name="Dilan")
+            second_name="Dilan",
+        )
         second_user = User(
             username="Steven",
             password=get_password_hash("12345"),
             email="steven@gmail.com",
             full_name="Steven King",
-            second_name="King")
+            second_name="King",
+        )
 
         session.add_all([default_user, second_user])
         session.commit()
 
-        book1 = Book(title="Horror", author="some_author", price=45,
-                     description="some_horror_book", in_stock=True,
-                     user_id=default_user.id)
-        book2 = Book(title="Mystic", author="some_author2", price=35,
-                     description="some_mystic_book", in_stock=False,
-                     user_id=second_user.id)
-        book3 = Book(title="Story", author="some_author3", price=25,
-                     description="some_story_book", in_stock=True,
-                     user_id=default_user.id)
+        book1 = Book(
+            title="Horror",
+            author="some_author",
+            price=45,
+            description="some_horror_book",
+            in_stock=True,
+            user_id=default_user.id,
+        )
+        book2 = Book(
+            title="Mystic",
+            author="some_author2",
+            price=35,
+            description="some_mystic_book",
+            in_stock=False,
+            user_id=second_user.id,
+        )
+        book3 = Book(
+            title="Story",
+            author="some_author3",
+            price=25,
+            description="some_story_book",
+            in_stock=True,
+            user_id=default_user.id,
+        )
 
         session.add_all([book1, book2, book3])
         session.commit()
@@ -76,8 +93,8 @@ def default_user(test_client):
             "password": "12345",
             "email": "bob@gmail.com",
             "full_name": "Bob Dilan",
-            "second_name": "Dilan"
-        }
+            "second_name": "Dilan",
+        },
     )
     json_response = response.json()
     yield json_response
@@ -92,8 +109,8 @@ def default_user_token(test_client):
             "password": "12345",
             "email": "bob@gmail.com",
             "full_name": "Bob Dilan",
-            "second_name": "Dilan"
-        }
+            "second_name": "Dilan",
+        },
     )
     json_response = response.json()
     yield json_response["access_token"]
@@ -108,8 +125,8 @@ def second_user_token(test_client):
             "password": "12345",
             "email": "steven@gmail.com",
             "full_name": "Steven King",
-            "second_name": "King"
-        }
+            "second_name": "King",
+        },
     )
     json_response = response.json()
     yield json_response["access_token"]
