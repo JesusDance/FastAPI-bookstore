@@ -2,6 +2,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Path, Body, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 
 from app.db import SessionDep
@@ -67,7 +68,11 @@ def update_book(
     book_db.sqlmodel_update(updated_book)
 
     session.add(book_db)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError as e:
+        session.rollback()
+        raise HTTPException(422, detail=f"{e.orig}")
     session.refresh(book_db)
     return book_db
 
