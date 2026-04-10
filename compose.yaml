@@ -1,0 +1,27 @@
+services:
+  app:
+    container_name: my_bookstore
+    build: .
+    volumes:
+      - ./:/app
+    ports:
+      - "8000:80"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgresql://admin:admin@localhost:5432/bookstore"
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin"
+      POSTGRES_DB: "bookstore"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:
+
