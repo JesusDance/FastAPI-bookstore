@@ -10,7 +10,7 @@ class BaseUser(SQLModel):
             "length(username) >= 3 AND length(username) <= 50", name="username_length"
         ),
         CheckConstraint(
-            "length(password) >= 5 AND length(password) <= 100", name="password_length"
+            "length(password) >= 5 AND length(password) <= 250", name="password_length"
         ),
         CheckConstraint(
             "full_name IS NULL OR length(full_name) <= 50", name="full_name_length"
@@ -21,7 +21,7 @@ class BaseUser(SQLModel):
         ),
     )
     username: str = Field(index=True, min_length=3, max_length=50)
-    password: str = Field(min_length=5, max_length=100)
+    password: str = Field(min_length=5, max_length=250)
     email: EmailStr
     full_name: str | None = Field(default=None, max_length=50)
     second_name: str | None = Field(default=None, max_length=50)

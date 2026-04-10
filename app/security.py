@@ -1,10 +1,9 @@
 from datetime import datetime, timedelta, timezone
 
 import jwt
+from fastapi import HTTPException, status
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
-
-from fastapi import HTTPException, status
 
 SECRET_KEY = "secret_key1234567890qwertyuioplk"
 ALGORITHM = "HS256"

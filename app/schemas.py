@@ -1,5 +1,6 @@
-from sqlmodel import SQLModel
 from pydantic import EmailStr, BaseModel
+from sqlmodel import SQLModel
+
 from app.models import BaseUser, BaseBook
 
 

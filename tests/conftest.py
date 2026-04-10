@@ -1,12 +1,12 @@
 import pytest
-
 from fastapi.testclient import TestClient
 from sqlmodel import create_engine, Session, SQLModel
+
 from app.config import TestingConfig
+from app.db import get_session
+from app.main import app
 from app.models import User, Book
 from app.security import get_password_hash
-from app.main import app
-from app.db import get_session
 
 settings = TestingConfig()
 

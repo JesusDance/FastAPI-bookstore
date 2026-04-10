@@ -1,10 +1,11 @@
 from typing import Annotated, Any
+
 from fastapi import Body, APIRouter, HTTPException
 from sqlmodel import select
 
-from app.schemas import UserIn, UserOut, Token
-from app.models import User
 from app.db import SessionDep
+from app.models import User
+from app.schemas import UserIn, UserOut, Token
 from app.security import get_password_hash, verify_password, create_access_token
 
 router = APIRouter(prefix="/register", tags=["register"])
@@ -53,15 +54,4 @@ def login_user(session: SessionDep, user: USER) -> Any:
     return {"access_token": token, "token_type": "bearer"}
 
 
-@router.get("/{user_id}", response_model=UserOut)
-def get_user(session: SessionDep, user_id: int) -> Any:
-    user = session.get(User, user_id)
-    if not user:
-        raise HTTPException(404, "User not found")
-    return user
 
-
-@router.get("/", response_model=list[UserOut])
-def get_users(session: SessionDep) -> Any:
-    users = session.exec(select(User)).all()
-    return users

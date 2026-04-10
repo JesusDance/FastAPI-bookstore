@@ -98,22 +98,22 @@ def test_user_invalid_login(test_client):
     assert response.json()["detail"] == "Incorrect username or password"
 
 
-def test_get_user(test_client):
-    response = test_client.get("/register/1")
-
-    assert response.status_code == 200
-    assert "username" in response.json()
-
-
-def test_user_not_found(test_client):
-    response = test_client.get("/register/10")
-
-    assert response.status_code == 404
-    assert response.json()["detail"] == "User not found"
-
-
-def test_get_user_list(test_client):
-    response = test_client.get("/register/")
-
-    assert response.status_code == 200
-    assert not response.json() == []
+# def test_get_user(test_client):
+#     response = test_client.get("/register/1")
+#
+#     assert response.status_code == 200
+#     assert "username" in response.json()
+#
+#
+# def test_user_not_found(test_client):
+#     response = test_client.get("/register/10")
+#
+#     assert response.status_code == 404
+#     assert response.json()["detail"] == "User not found"
+#
+#
+# def test_get_user_list(test_client):
+#     response = test_client.get("/register/")
+#
+#     assert response.status_code == 200
+#     assert not response.json() == []

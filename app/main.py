@@ -1,9 +1,10 @@
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
 from sqlmodel import SQLModel
 
-from app.db import engine
 from app.books import router as book_router
+from app.db import engine
 from app.user import router as user_router
 
 
