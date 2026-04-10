@@ -7,13 +7,16 @@ from sqlmodel import SQLModel, Field, Relationship, CheckConstraint
 class BaseUser(SQLModel):
     __table_args__ = (
         CheckConstraint(
-            "length(username) >= 3 AND length(username) <= 50", name="username_length"
+            "length(username) >= 3 AND length(username) <= 50",
+            name="username_length"
         ),
         CheckConstraint(
-            "length(password) >= 5 AND length(password) <= 250", name="password_length"
+            "length(password) >= 5 AND length(password) <= 250",
+            name="password_length"
         ),
         CheckConstraint(
-            "full_name IS NULL OR length(full_name) <= 50", name="full_name_length"
+            "full_name IS NULL OR length(full_name) <= 50",
+            name="full_name_length"
         ),
         CheckConstraint(
             "second_name IS NULL OR length(second_name) <= 50",
