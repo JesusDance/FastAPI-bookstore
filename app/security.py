@@ -1,12 +1,17 @@
+import os
 from datetime import datetime, timedelta, timezone
 
 import jwt
+from dotenv import load_dotenv
 from fastapi import HTTPException, status
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 
-SECRET_KEY = "secret_key1234567890qwertyuioplk"
-ALGORITHM = "HS256"
+
+load_dotenv()
+
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 password_hash = PasswordHash.recommended()
