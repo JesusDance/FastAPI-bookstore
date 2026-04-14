@@ -52,6 +52,3 @@ def login_user(session: SessionDep, user: USER) -> Any:
 
     token = create_access_token(existing_user.id)
     return {"access_token": token, "token_type": "bearer"}
-
-
-

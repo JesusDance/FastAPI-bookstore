@@ -7,7 +7,6 @@ from fastapi import HTTPException, status
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 
-
 load_dotenv()
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
