@@ -8,7 +8,7 @@ load_dotenv()
 
 class Settings(BaseSettings):
     TESTING: bool = False
-    DATABASE_URL: str = "postgresql://admin:admin@db:5432/bookstore"
+    DATABASE_URL: str = "postgresql+psycopg2://admin:admin@db:5432/bookstore"
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY")
 
 

@@ -3,10 +3,10 @@ from typing import Annotated
 from fastapi import Depends
 from sqlmodel import Session, create_engine
 
-#sqlite_url = "sqlite:///db.sqlite"
-#engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
+# sqlite_url = "sqlite:///db.sqlite"
+# engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
 
-DATABASE_URL = "postgresql://admin:admin@db:5432/bookstore"
+DATABASE_URL = "postgresql+psycopg2://admin:admin@db:5432/bookstore"
 engine = create_engine(DATABASE_URL)
 
 def get_session():
