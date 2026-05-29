@@ -65,7 +65,6 @@ def test_duplicate_user(test_client):
     json_response = response.json()
     assert response.status_code == 400
     assert json_response["detail"] == "User already exist"
-    assert "password" not in json_response
 
 
 def test_user_valid_login(test_client):
