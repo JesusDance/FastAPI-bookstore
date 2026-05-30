@@ -14,9 +14,13 @@ and bookstore for collecting this books.
 - JWT authorization
 - Pytest using SQLite
 - Dockerfile with docker-compose
+- Deploy using Render
+- Neon database for cloud host
 
 ##Routes:
 - '/': main endpoint
 - '/register': user registration
 - '/register/login': user authentication (JWT token)
 - '/bookstore': protected routes for managing books
+- https://fastapi-bookstore-a0pj.onrender.com
+- https://fastapi-bookstore-a0pj.onrender.com/docs OpenAPI swagger
