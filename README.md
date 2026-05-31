@@ -1,10 +1,10 @@
-#FastAPI-bookstore
+# FastAPI-bookstore
 
 ## Description:
 A RESTfull API for managing a bookstore where users(authors) can create books
 and bookstore for collecting this books.
 
-##Features:
+## Features:
 - FastAPI RESTfull CRUD operations
 - Pydentic models for validation
 - SQLAlchemy ORM
@@ -17,7 +17,7 @@ and bookstore for collecting this books.
 - Deploy using Render
 - Neon database for cloud host
 
-##Routes:
+## Routes:
 - '/': main endpoint
 - '/register': user registration
 - '/register/login': user authentication (JWT token)
