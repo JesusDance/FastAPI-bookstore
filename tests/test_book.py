@@ -90,15 +90,16 @@ def test_book_flow(test_client, default_user_token):
         },
     )
     assert response.status_code == 201
+    book_id = response.json()["id"]
 
     response_get = test_client.get(
-        "/bookstore/3", headers={"Authorization": "Bearer " + default_user_token}
+        f"/bookstore/{book_id}", headers={"Authorization": "Bearer " + default_user_token}
     )
     assert response_get.status_code == 200
-    assert response_get.json()["title"] == "Story"
+    assert response_get.json()["title"] == "test_book"
 
     response_patch = test_client.patch(
-        "/bookstore/3",
+        f"/bookstore/{book_id}",
         headers={"Authorization": "Bearer " + default_user_token},
         json={"title": "Story2"},
     )
@@ -106,7 +107,7 @@ def test_book_flow(test_client, default_user_token):
     assert response_patch.json()["title"] == "Story2"
 
     response_delete = test_client.delete(
-        "/bookstore/4", headers={"Authorization": "Bearer " + default_user_token}
+        f"/bookstore/{book_id}", headers={"Authorization": "Bearer " + default_user_token}
     )
     assert response_delete.status_code == 200
     assert response_delete.json()["message"] == "Book deleted successfully"
