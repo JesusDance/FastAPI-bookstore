@@ -18,7 +18,7 @@ class ReadBook(SQLModel):
     title: str
     author: str
     price: float
-    description: str
+    description: str | None = None
     in_stock: bool
 
 
