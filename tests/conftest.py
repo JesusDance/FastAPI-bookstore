@@ -1,25 +1,19 @@
-import os
-
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import create_engine, Session, SQLModel
 
-from app.config import TestingConfig
 from app.db import get_session
 from app.main import app
 from app.models import User, Book
 from app.security import get_password_hash
 
-settings = TestingConfig()
 
 test_engine = create_engine(
-    settings.DATABASE_URL, connect_args={"check_same_thread": False}
+    "sqlite:///test.db", connect_args={"check_same_thread": False}
 )
 
 
 def override_get_session():
-    #os.environ("CONFIG_TYPE") = "app.config.TestingConfig"
-    #os.getenv("DATABASE_URL") = "app.config." тести не перехоплюють db_url
     with Session(test_engine) as session:
         yield session
 
@@ -86,23 +80,6 @@ def test_client(create_test_db):
     with TestClient(app) as client:
         yield client
     app.dependency_overrides = {}
-
-
-#Видалити. Зайве.
-# @pytest.fixture(scope="module")
-# def default_user(test_client):
-#     response = test_client.post(
-#         "/register/login/",
-#         json={
-#             "username": "Bob",
-#             "password": "12345",
-#             "email": "bob@gmail.com",
-#             "full_name": "Bob Dilan",
-#             "second_name": "Dilan",
-#         },
-#     )
-#     json_response = response.json()
-#     yield json_response
 
 
 @pytest.fixture(scope="module")
