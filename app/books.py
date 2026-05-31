@@ -1,6 +1,6 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Path, Body, HTTPException, Depends
+from fastapi import APIRouter, Body, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
@@ -14,7 +14,6 @@ router = APIRouter(prefix="/bookstore", tags=["bookstore"])
 oauth2_schema = OAuth2PasswordBearer(tokenUrl="/register/login")
 
 BOOK = Annotated[CreateBook, Body()]
-BOOK_ID: Annotated[int, Path(ge=0, le=100)]
 UPDATE_BOOK = Annotated[UpdateBook, Body()]
 TOKEN_DEP = Annotated[str, Depends(oauth2_schema)]
 
