@@ -14,7 +14,7 @@ USER = Annotated[UserIn, Body()]
 
 
 @router.post("/", response_model=UserOut, status_code=201)
-def register_user(session: SessionDep, user: USER) -> Any:
+async def register_user(session: SessionDep, user: USER) -> Any:
     existing_user = session.exec(
         select(User).where(User.username == user.username)
     ).first()
@@ -30,10 +30,14 @@ def register_user(session: SessionDep, user: USER) -> Any:
     #                full_name=user.full_name,
     #                second_name=user.second_name)
 
-    current_user = user.model_dump()
-    user_plain_password = current_user.pop("password")
-    hash_password = get_password_hash(user_plain_password)
-    user_db = User(**current_user, password=hash_password)
+    # current_user = user.model_dump()
+    # user_plain_password = current_user.pop("password")
+    # hash_password = get_password_hash(user_plain_password)
+
+    user_db = User(
+        **user.model_dump(exclude={"password"}),
+        password=get_password_hash(user.password)
+    )
     session.add(user_db)
     session.commit()
     session.refresh(user_db)
@@ -42,7 +46,7 @@ def register_user(session: SessionDep, user: USER) -> Any:
 
 
 @router.post("/login", response_model=Token)
-def login_user(session: SessionDep, user: USER) -> Any:
+async def login_user(session: SessionDep, user: USER) -> Any:
     existing_user = session.exec(
         select(User).where(User.username == user.username)
     ).first()

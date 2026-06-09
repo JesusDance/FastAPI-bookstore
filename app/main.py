@@ -24,5 +24,5 @@ app.include_router(user_router)
 
 
 @app.get("/")
-def get_root():
+async def get_root():
     return {"message": "Hello from FastAPI!"}

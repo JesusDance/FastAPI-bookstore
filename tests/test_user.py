@@ -1,5 +1,9 @@
-def test_user_registration(test_client):
-    response = test_client.post(
+import pytest
+
+
+@pytest.mark.asyncio
+async def test_user_registration(test_client):
+    response = await test_client.post(
         "/register/",
         json={
             "username": "user",
@@ -17,8 +21,9 @@ def test_user_registration(test_client):
     assert "email" in json_response
 
 
-def test_user_valid_registration(test_client):
-    response = test_client.post(
+@pytest.mark.asyncio
+async def test_user_valid_registration(test_client):
+    response = await test_client.post(
         "/register/",
         json={
             "username": "user2",
@@ -37,8 +42,9 @@ def test_user_valid_registration(test_client):
     assert json_response["second_name"] == "user2"
 
 
-def test_user_invalid_registration(test_client):
-    response = test_client.post(
+@pytest.mark.asyncio
+async def test_user_invalid_registration(test_client):
+    response = await test_client.post(
         "/register/",
         json={
             "username": "Al",
@@ -51,8 +57,9 @@ def test_user_invalid_registration(test_client):
     assert response.status_code == 422
 
 
-def test_duplicate_user(test_client):
-    response = test_client.post(
+@pytest.mark.asyncio
+async def test_duplicate_user(test_client):
+    response = await test_client.post(
         "/register/",
         json={
             "username": "Bob",
@@ -67,8 +74,9 @@ def test_duplicate_user(test_client):
     assert json_response["detail"] == "User already exist"
 
 
-def test_user_valid_login(test_client):
-    response = test_client.post(
+@pytest.mark.asyncio
+async def test_user_valid_login(test_client):
+    response = await test_client.post(
         "/register/login/",
         json={
             "username": "Bob",
@@ -82,8 +90,9 @@ def test_user_valid_login(test_client):
     assert response.json()["access_token"]
 
 
-def test_user_invalid_login(test_client):
-    response = test_client.post(
+@pytest.mark.asyncio
+async def test_user_invalid_login(test_client):
+    response = await test_client.post(
         "/register/login/",
         json={
             "username": "Bob3",

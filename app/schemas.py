@@ -10,7 +10,7 @@ class Token(BaseModel):
 
 
 class CreateBook(BaseBook):
-    pass
+    author: str | None = None
 
 
 class ReadBook(SQLModel):
