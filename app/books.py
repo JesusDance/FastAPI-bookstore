@@ -2,11 +2,13 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Body, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
+from httpx import AsyncClient
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 
 from app.client import BookClient
+from app.client import get_httpx_client
 from app.db import SessionDep
 from app.models import Book
 from app.schemas import CreateBook, ReadBook, UpdateBook
@@ -20,7 +22,7 @@ BOOKSTORE_API_URL = "https://openlibrary.org/search.json?title="
 BOOK = Annotated[CreateBook, Body()]
 UPDATE_BOOK = Annotated[UpdateBook, Body()]
 TOKEN_DEP = Annotated[str, Depends(oauth2_schema)]
-
+CLIENT = Annotated[AsyncClient, Depends(get_httpx_client)]
 
 async def check_book_limit(session: SessionDep, user_id: int):
     books = session.exec(select(Book).where(Book.user_id == user_id)).all()
@@ -29,7 +31,7 @@ async def check_book_limit(session: SessionDep, user_id: int):
 
 
 @router.post("/", response_model=ReadBook, status_code=201)
-async def create_book(session: SessionDep, book: BOOK, token: TOKEN_DEP) -> Any:
+async def create_book(session: SessionDep, client: CLIENT, book: BOOK, token: TOKEN_DEP) -> Any:
     user_id = decode_token(token)
     await check_book_limit(session, user_id)
 
@@ -42,7 +44,7 @@ async def create_book(session: SessionDep, book: BOOK, token: TOKEN_DEP) -> Any:
     if existing_book:
         raise HTTPException(409, "Book already exists")
     else:
-        client = BookClient(BOOKSTORE_API_URL)
+        client = BookClient(BOOKSTORE_API_URL, client)
         title, author = await client.fetch_book_from_api(book.title)
 
     book_db = Book(
@@ -51,7 +53,6 @@ async def create_book(session: SessionDep, book: BOOK, token: TOKEN_DEP) -> Any:
         author=author,
         user_id=user_id,
     )
-
     session.add(book_db)
     session.commit()
     session.refresh(book_db)
@@ -70,11 +71,8 @@ async def get_book(session: SessionDep, book_id: int, token: TOKEN_DEP) -> Any:
     user_id = decode_token(token)
     book_db = session.get(Book, book_id)
 
-    if not book_db:
+    if not (book_db and book_db.user_id == user_id):
         raise HTTPException(404, "Book not found")
-
-    if not book_db.user_id == user_id:
-        raise HTTPException(404, "You don't have access for this book")
     return book_db
 
 
@@ -86,11 +84,8 @@ async def update_book(
     book_db = session.get(Book, book_id)
     user_id = decode_token(token)
 
-    if not book_db:
+    if not (book_db and book_db.user_id == user_id):
         raise HTTPException(404, "Book not found")
-
-    if not book_db.user_id == user_id:
-        raise HTTPException(404, "You don't have access for this book")
 
     updated_book = book.model_dump(exclude_unset=True)
     book_db.sqlmodel_update(updated_book)
@@ -110,11 +105,8 @@ async def delete_book(session: SessionDep, book_id: int, token: TOKEN_DEP) -> An
     user_id = decode_token(token)
     book_db = session.get(Book, book_id)
 
-    if not book_db:
+    if not (book_db and book_db.user_id == user_id):
         raise HTTPException(404, "Book not found")
-
-    if not book_db.user_id == user_id:
-        raise HTTPException(404, "You don't have access for this book")
 
     session.delete(book_db)
     session.commit()
