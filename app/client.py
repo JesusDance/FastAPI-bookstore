@@ -3,7 +3,6 @@ import logging
 from fastapi import HTTPException
 from starlette.requests import Request
 
-logger = logging.getLogger(__name__)
 
 logging.basicConfig(
     format="%(levelname)s [%(asctime)s] %(name)s - %(message)s",
