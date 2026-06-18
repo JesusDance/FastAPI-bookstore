@@ -79,9 +79,9 @@ def create_test_db():
 @pytest_asyncio.fixture
 async def mock_api_client(httpx_mock: HTTPXMock):
     httpx_mock.add_response(
+        url="https://openlibrary.org/search.json?title=test_book",
         http_version="HTTP/2.0",
         is_optional=True,
-        is_reusable=True,
         json={
             "docs": [
                 {
@@ -102,8 +102,6 @@ async def test_client_api(create_test_db, mock_api_client):
                 base_url="http://test",
                 http2=True,
                 follow_redirects=True) as as_client:
-            await as_client.get(
-                "https://openlibrary.org/search.json?title=test+book")
             yield as_client
     app.dependency_overrides = {}
 
