@@ -1,6 +1,7 @@
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Body, HTTPException, Depends
+from fastapi.params import Query
 from fastapi.security import OAuth2PasswordBearer
 from httpx import AsyncClient
 from sqlalchemy import func
@@ -26,7 +27,7 @@ CLIENT = Annotated[AsyncClient, Depends(get_httpx_client)]
 
 async def check_book_limit(session: SessionDep, user_id: int):
     books = session.exec(select(Book).where(Book.user_id == user_id)).all()
-    if len(books) >= 10:
+    if len(books) >= 20:
         raise HTTPException(400, "Max books in case")
 
 
@@ -60,9 +61,16 @@ async def create_book(session: SessionDep, client: CLIENT, book: BOOK, token: TO
 
 
 @router.get("/", response_model=list[ReadBook])
-async def get_books(session: SessionDep, token: TOKEN_DEP) -> Any:
+async def get_books(
+    session: SessionDep,
+    token: TOKEN_DEP,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(le=10)] = 10,
+) -> Any:
     user_id = decode_token(token)
-    books = session.exec(select(Book).where(Book.user_id == user_id)).all()
+    books = session.exec(
+        select(Book).where(Book.user_id == user_id).offset(offset).limit(limit)
+    ).all()
     return books
 
 
