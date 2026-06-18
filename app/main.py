@@ -12,7 +12,7 @@ from app.books import router as book_router
 from app.db import engine
 from app.user import router as user_router
 
-ORIGINS = ['http://localhost', 'http://localhost:8080', 'https://localhost']
+ORIGINS = ['http://127.0.0.1:3000', 'http://localhost:8080']
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
