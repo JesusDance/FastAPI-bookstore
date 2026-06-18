@@ -40,8 +40,8 @@ async def test_create_duplicate_book(test_client_api, default_user_token):
 
 
 @pytest.mark.asyncio
-async def test_create_invalid_book(test_client, default_user_token):
-    response = await test_client.post(
+async def test_create_invalid_book(test_client_api, default_user_token):
+    response = await test_client_api.post(
         "/bookstore/",
         headers={"Authorization": "Bearer " + default_user_token},
         json={
@@ -56,8 +56,8 @@ async def test_create_invalid_book(test_client, default_user_token):
 
 
 @pytest.mark.asyncio
-async def test_get_no_book(test_client, default_user_token):
-    response = await test_client.get(
+async def test_get_no_book(test_client_api, default_user_token):
+    response = await test_client_api.get(
         "/bookstore/999", headers={"Authorization": "Bearer " + default_user_token}
     )
     assert response.status_code == 404
@@ -65,12 +65,12 @@ async def test_get_no_book(test_client, default_user_token):
 
 
 @pytest.mark.asyncio
-async def test_no_access_to_book(test_client, second_user_token):
-    response = await test_client.get(
+async def test_no_access_to_book(test_client_api, second_user_token):
+    response = await test_client_api.get(
         "/bookstore/1", headers={"Authorization": "Bearer " + second_user_token}
     )
     assert response.status_code == 404
-    assert response.json()["detail"] == "You don't have access for this book"
+    assert response.json()["detail"] == "Book not found"
 
 
 @pytest.mark.asyncio
