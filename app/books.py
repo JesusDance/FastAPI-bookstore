@@ -25,6 +25,7 @@ UPDATE_BOOK = Annotated[UpdateBook, Body()]
 TOKEN_DEP = Annotated[str, Depends(oauth2_schema)]
 CLIENT = Annotated[AsyncClient, Depends(get_httpx_client)]
 
+
 async def check_book_limit(session: SessionDep, user_id: int):
     books = session.exec(select(Book).where(Book.user_id == user_id)).all()
     if len(books) >= 20:
@@ -32,21 +33,21 @@ async def check_book_limit(session: SessionDep, user_id: int):
 
 
 @router.post("/", response_model=ReadBook, status_code=201)
-async def create_book(session: SessionDep, client: CLIENT, book: BOOK, token: TOKEN_DEP) -> Any:
+async def create_book(
+    session: SessionDep, client: CLIENT, book: BOOK, token: TOKEN_DEP
+) -> Any:
     user_id = decode_token(token)
     await check_book_limit(session, user_id)
 
+    client = BookClient(BOOKSTORE_API_URL, client)
+    title, author = await client.fetch_book_from_api(book.title)
+
     existing_book = session.exec(
-        select(Book).where(
-            func.lower(Book.title) == book.title.lower(), Book.user_id == user_id
-        )
+        select(Book).where(Book.title == title, Book.user_id == user_id)
     ).first()
 
     if existing_book:
         raise HTTPException(409, "Book already exists")
-    else:
-        client = BookClient(BOOKSTORE_API_URL, client)
-        title, author = await client.fetch_book_from_api(book.title)
 
     book_db = Book(
         **book.model_dump(exclude={"title", "author"}),
