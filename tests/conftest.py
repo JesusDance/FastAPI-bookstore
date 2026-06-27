@@ -9,6 +9,8 @@ from app.db import get_session
 from app.main import app
 from app.models import User, Book
 from app.security import get_password_hash
+from cache.cache_redis import get_redis_client
+from .fake_redis import override_get_redis_client, fake_redis
 
 test_engine = create_engine(
     "sqlite:///test.db", connect_args={"check_same_thread": False}
@@ -95,7 +97,9 @@ async def mock_api_client(httpx_mock: HTTPXMock):
 
 @pytest_asyncio.fixture
 async def test_client_api(create_test_db, mock_api_client):
+    fake_redis.storage.clear()
     app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_redis_client] = override_get_redis_client
     async with LifespanManager(app) as manager:
         async with AsyncClient(
                 transport=ASGITransport(app=manager.app),
@@ -108,7 +112,9 @@ async def test_client_api(create_test_db, mock_api_client):
 
 @pytest_asyncio.fixture(scope="module")
 async def test_client(create_test_db):
+    fake_redis.storage.clear()
     app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_redis_client] = override_get_redis_client
     async with LifespanManager(app) as manager:
         async with AsyncClient(
                 transport=ASGITransport(app=manager.app),
