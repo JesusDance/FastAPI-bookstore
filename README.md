@@ -16,6 +16,7 @@ and collect this books in database.
 - JWT authorization
 - Async Unit tests with Pytest using SQLite
 - Dockerfile with docker-compose
+- Redis for caching queries
 - Deploy using Render
 - Neon database for cloud host
 
@@ -34,7 +35,9 @@ and collect this books in database.
 pip install -r requirements.txt
 
 ## 4. Run app
-uvicorn app.main:app --reload
+1. docker build -t bookstore-api .
+2. docker-compose up -d
+3. uvicorn app.main:app --reload
 
 ## App runs at:
 - http://127.0.0.1:8000
@@ -53,8 +56,3 @@ uvicorn app.main:app --reload
 - '/bookstore': protected routes for managing books
 - https://fastapi-bookstore-a0pj.onrender.com
 - https://fastapi-bookstore-a0pj.onrender.com/docs OpenAPI swagger
-
-# Docker
-
-1. docker build -t bookstore-api .
-2. docker run -p 8000:8000 bookstore-api
