@@ -1,4 +1,5 @@
 import json
+from typing import Any
 
 from redis.asyncio import Redis
 from starlette.requests import Request
@@ -13,9 +14,10 @@ class RedisCacheClient:
         self.redis = redis
         self.cache_ttl_seconds = cache_ttl_seconds
 
-    async def set_cache(self, key: str, value: dict) -> None:
-        await self.redis.set(name=key, value=json.dumps(value), ex=self.cache_ttl_seconds)
-
+    async def set_cache(self, key: str, value: dict) -> Any:
+        await self.redis.set(
+            name=key, value=json.dumps(value), ex=self.cache_ttl_seconds
+        )
 
     async def get(self, key: str):
         value = await self.redis.get(key)
@@ -23,10 +25,8 @@ class RedisCacheClient:
             return None
         return json.loads(value)
 
-
     async def delete(self, key: str) -> None:
         await self.redis.delete(key)
-
 
     async def delete_by_pattern(self, pattern: str) -> None:
         async for key in self.redis.scan_iter(match=pattern):
