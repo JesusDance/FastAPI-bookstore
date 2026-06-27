@@ -1,8 +1,8 @@
-import httpx
 import logging
+
+import httpx
 from fastapi import HTTPException
 from starlette.requests import Request
-
 
 logging.basicConfig(
     format="%(levelname)s [%(asctime)s] %(name)s - %(message)s",
