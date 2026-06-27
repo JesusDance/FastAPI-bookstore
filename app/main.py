@@ -27,6 +27,8 @@ async def lifespan(_: FastAPI):
     )
     app.state.httpx_client = AsyncClient(http2=True, limits=limits)
     app.state.redis_client = Redis.from_url(settings.REDIS_URL, decode_responses=True)
+    await app.state.redis_client.ping()
+    print("REDIS PING OK")
     yield
     await app.state.httpx_client.aclose()
     await app.state.redis_client.aclose()

@@ -15,12 +15,15 @@ class RedisCacheClient:
         self.cache_ttl_seconds = cache_ttl_seconds
 
     async def set_cache(self, key: str, value: dict) -> Any:
-        await self.redis.set(
+        result = await self.redis.set(
             name=key, value=json.dumps(value), ex=self.cache_ttl_seconds
         )
+        print(f"REDIS SET key={key} result={result}")
+        return result
 
     async def get(self, key: str):
         value = await self.redis.get(key)
+        print(f"GET REDIS key={key} hit={value is not None}")
         if value is None:
             return None
         return json.loads(value)
