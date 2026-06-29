@@ -7,6 +7,7 @@ from httpx import AsyncClient
 from redis.asyncio import Redis
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
+from starlette.requests import Request
 
 from app.client import BookClient
 from app.client import get_httpx_client
@@ -15,7 +16,7 @@ from app.db import SessionDep
 from app.models import Book
 from app.schemas import CreateBook, ReadBook, UpdateBook
 from app.security import decode_token
-from cache.cache_redis import RedisCacheClient, get_redis_client
+from cache.cache_redis import RedisCacheClient, get_redis_client, rate_limit_by_ip
 
 router = APIRouter(prefix="/bookstore", tags=["bookstore"])
 oauth2_schema = OAuth2PasswordBearer(tokenUrl="/register/login")
@@ -38,12 +39,15 @@ async def check_book_limit(session: SessionDep, user_id: int):
 @router.post("/", response_model=ReadBook, status_code=201)
 async def create_book(
     session: SessionDep,
+    request: Request,
     client: CLIENT,
     cache: REDIS_CLIENT,
     book: BOOK,
     token: TOKEN_DEP,
 ) -> Any:
     user_id = decode_token(token)
+
+    await rate_limit_by_ip(r=request, redis_client=cache)
     await check_book_limit(session, user_id)
 
     client = BookClient(BOOKSTORE_API_URL, client)
