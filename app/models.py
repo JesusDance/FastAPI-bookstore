@@ -1,10 +1,15 @@
-from typing import List, Optional
+from typing import List
 
-from pydantic import EmailStr
-from sqlmodel import SQLModel, Field, Relationship, CheckConstraint
+from sqlalchemy import ForeignKey, String, CheckConstraint
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
-class BaseUser(SQLModel):
+class Base(DeclarativeBase): ...
+
+
+class User(Base):
+    __tablename__ = "user"
+
     __table_args__ = (
         CheckConstraint(
             "length(username) >= 3 AND length(username) <= 50",
@@ -23,20 +28,27 @@ class BaseUser(SQLModel):
             name="second_name_length",
         ),
     )
-    username: str = Field(index=True, min_length=3, max_length=50)
-    password: str = Field(min_length=5, max_length=250)
-    email: EmailStr
-    full_name: str | None = Field(default=None, max_length=50)
-    second_name: str | None = Field(default=None, max_length=50)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(String(50), index=True, nullable=False)
+    password: Mapped[str] = mapped_column(String(250), nullable=False)
+    email: Mapped[str] = mapped_column(nullable=False)
+    full_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    second_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
+    books: Mapped[List["Book"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"User(id={self.id}, username={self.username}, books={self.books})"
+        )
 
 
-class User(BaseUser, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+class Book(Base):
+    __tablename__ = "book"
 
-    books: List["Book"] = Relationship(back_populates="user")
-
-
-class BaseBook(SQLModel):
     __table_args__ = (
         CheckConstraint(
             "length(title) >= 3 AND length(title) <= 50", name="title_length"
@@ -50,15 +62,16 @@ class BaseBook(SQLModel):
             name="description_length",
         ),
     )
-    title: str = Field(min_length=3, max_length=50)
-    author: str = Field(min_length=5, max_length=50)
-    price: float = Field(gt=0, lt=50)
-    description: str | None = Field(default=None, min_length=0, max_length=50)
-    in_stock: bool
 
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(50))
+    author: Mapped[str] = mapped_column(String(50))
+    price: Mapped[float]
+    description: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    in_stock: Mapped[bool]
 
-class Book(BaseBook, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    user: Mapped["User"] = relationship(back_populates="books")
 
-    user_id: int = Field(foreign_key="user.id")
-    user: Optional[User] = Relationship(back_populates="books")
+    def __repr__(self) -> str:
+        return f"Book(id={self.id}, title={self.title}, user_id={self.user_id})"
