@@ -1,7 +1,7 @@
 from typing import Annotated, Any
 
 from fastapi import Body, APIRouter, HTTPException
-from sqlmodel import select
+from sqlalchemy import select
 
 from app.db import SessionDep
 from app.models import User
@@ -15,9 +15,7 @@ USER = Annotated[UserIn, Body()]
 
 @router.post("/", response_model=UserOut, status_code=201)
 async def register_user(session: SessionDep, user: USER) -> Any:
-    existing_user = session.exec(
-        select(User).where(User.username == user.username)
-    ).first()
+    existing_user = session.scalar(select(User).where(User.username == user.username))
 
     if existing_user:
         raise HTTPException(400, "User already exist")
@@ -47,9 +45,7 @@ async def register_user(session: SessionDep, user: USER) -> Any:
 
 @router.post("/login", response_model=Token)
 async def login_user(session: SessionDep, user: USER) -> Any:
-    existing_user = session.exec(
-        select(User).where(User.username == user.username)
-    ).first()
+    existing_user = session.scalar(select(User).where(User.username == user.username))
 
     if not existing_user or not verify_password(user.password, existing_user.password):
         raise HTTPException(401, "Incorrect username or password")
