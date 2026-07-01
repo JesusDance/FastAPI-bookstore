@@ -6,17 +6,17 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from httpx import AsyncClient
 from redis.asyncio import Redis
-from sqlmodel import SQLModel
 
 from app.basic_auth import get_current_username
 from app.books import router as book_router
 from app.config import settings
 from app.db import engine
+from app.models import Base
 from app.user import router as user_router
 
 
 def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
+    Base.metadata.create_all(bind=engine)
 
 
 @asynccontextmanager
@@ -27,8 +27,6 @@ async def lifespan(_: FastAPI):
     )
     app.state.httpx_client = AsyncClient(http2=True, limits=limits)
     app.state.redis_client = Redis.from_url(settings.REDIS_URL, decode_responses=True)
-    await app.state.redis_client.ping()
-    print("REDIS PING OK")
     yield
     await app.state.httpx_client.aclose()
     await app.state.redis_client.aclose()
