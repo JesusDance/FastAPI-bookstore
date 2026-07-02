@@ -15,6 +15,13 @@ class FakeRedis:
         for key in list(self.storage):
             yield key
 
+    async def incr(self, key: str) -> int:
+        self.storage[key] = self.storage.get(key, 0) + 1
+        return self.storage[key]
+
+    async def expire(self, name: str, time: int = 60) -> bool:
+        return True
+
 
 fake_redis = FakeRedis()
 
