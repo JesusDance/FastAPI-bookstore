@@ -3,11 +3,12 @@ import pytest_asyncio
 from asgi_lifespan import LifespanManager
 from httpx import AsyncClient, ASGITransport
 from pytest_httpx import HTTPXMock
-from sqlmodel import create_engine, Session, SQLModel
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 from app.db import get_session
 from app.main import app
-from app.models import User, Book
+from app.models import User, Book, Base
 from app.security import get_password_hash
 from cache.cache_redis import get_redis_client
 from .fake_redis import override_get_redis_client, fake_redis
@@ -24,8 +25,8 @@ def override_get_session():
 
 @pytest.fixture(scope="module")
 def create_test_db():
-    SQLModel.metadata.drop_all(test_engine)
-    SQLModel.metadata.create_all(test_engine)
+    Base.metadata.drop_all(test_engine)
+    Base.metadata.create_all(test_engine)
 
     with Session(test_engine) as session:
         default_user = User(
@@ -75,7 +76,7 @@ def create_test_db():
         session.commit()
 
     yield
-    SQLModel.metadata.drop_all(test_engine)
+    Base.metadata.drop_all(test_engine)
 
 
 @pytest_asyncio.fixture
@@ -102,10 +103,11 @@ async def test_client_api(create_test_db, mock_api_client):
     app.dependency_overrides[get_redis_client] = override_get_redis_client
     async with LifespanManager(app) as manager:
         async with AsyncClient(
-                transport=ASGITransport(app=manager.app),
-                base_url="http://test",
-                http2=True,
-                follow_redirects=True) as as_client:
+            transport=ASGITransport(app=manager.app),
+            base_url="http://test",
+            http2=True,
+            follow_redirects=True,
+        ) as as_client:
             yield as_client
     app.dependency_overrides = {}
 
@@ -117,10 +119,11 @@ async def test_client(create_test_db):
     app.dependency_overrides[get_redis_client] = override_get_redis_client
     async with LifespanManager(app) as manager:
         async with AsyncClient(
-                transport=ASGITransport(app=manager.app),
-                base_url="http://test",
-                http2=True,
-                follow_redirects=True) as as_client:
+            transport=ASGITransport(app=manager.app),
+            base_url="http://test",
+            http2=True,
+            follow_redirects=True,
+        ) as as_client:
             yield as_client
     app.dependency_overrides = {}
 
