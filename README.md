@@ -17,6 +17,8 @@ and collect this books in database.
 - Async Unit tests with Pytest using SQLite
 - Dockerfile with docker-compose
 - Redis for caching queries
+- Rate limit by ip using redis
+- Logging for client
 - Deploy using Render
 - Neon database for cloud host
 
