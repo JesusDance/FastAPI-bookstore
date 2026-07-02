@@ -35,23 +35,23 @@ class RedisCacheClient:
             await self.redis.delete(key)
 
 
-async def rate_limit_by_ip(
-        r: Request,
-        redis_client: Redis,
-        seconds: int = settings.CACHE_EX_SECONDS,
-        limit: int = settings.LIMIT_OF_REQUESTS,
-):
-    credentials = HTTPException(
-        status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many requests"
-    )
-    ip = r.client.host
+    async def rate_limit_by_ip(
+            self,
+            r: Request,
+            seconds: int = settings.CACHE_EX_SECONDS,
+            limit: int = settings.LIMIT_OF_REQUESTS,
+    ):
+        credentials = HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many requests"
+        )
+        ip = r.client.host
 
-    key = f"rate_limit:{ip}"
+        key = f"rate_limit:{ip}"
 
-    request = await redis_client.incr(key)
+        request = await self.redis.incr(key)
 
-    if request == 1:
-        await redis_client.expire(name=key, time=seconds)
+        if request == 1:
+            await self.redis.expire(name=key, time=seconds)
 
-    if request > limit:
-        raise credentials
+        if request > limit:
+            raise credentials
