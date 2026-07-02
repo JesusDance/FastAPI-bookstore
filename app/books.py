@@ -5,8 +5,8 @@ from fastapi.params import Query
 from fastapi.security import OAuth2PasswordBearer
 from httpx import AsyncClient
 from redis.asyncio import Redis
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import select
 from starlette.requests import Request
 
 from app.client import BookClient
@@ -16,7 +16,7 @@ from app.db import SessionDep
 from app.models import Book
 from app.schemas import CreateBook, ReadBook, UpdateBook
 from app.security import decode_token
-from cache.cache_redis import RedisCacheClient, get_redis_client, rate_limit_by_ip
+from cache.cache_redis import RedisCacheClient, get_redis_client
 
 router = APIRouter(prefix="/bookstore", tags=["bookstore"])
 oauth2_schema = OAuth2PasswordBearer(tokenUrl="/register/login")
@@ -31,7 +31,7 @@ REDIS_CLIENT = Annotated[Redis, Depends(get_redis_client)]
 
 
 async def check_book_limit(session: SessionDep, user_id: int):
-    books = session.exec(select(Book).where(Book.user_id == user_id)).all()
+    books = session.scalars(select(Book).where(Book.user_id == user_id)).all()
     if len(books) >= 20:
         raise HTTPException(400, "Max books in case")
 
@@ -47,18 +47,18 @@ async def create_book(
 ) -> Any:
     user_id = decode_token(token)
 
-    await rate_limit_by_ip(r=request, redis_client=cache)
+    cache_pattern = f"books:{user_id}:*"
+    redis_client = RedisCacheClient(cache, settings.CACHE_TTL_SECONDS)
+
+    await redis_client.rate_limit_by_ip(r=request)
     await check_book_limit(session, user_id)
 
     client = BookClient(BOOKSTORE_API_URL, client)
     title, author = await client.fetch_book_from_api(book.title)
 
-    cache_pattern = f"books:{user_id}:*"
-    redis_client = RedisCacheClient(cache, settings.CACHE_TTL_SECONDS)
-
-    existing_book = session.exec(
+    existing_book = session.scalar(
         select(Book).where(Book.title == title, Book.user_id == user_id)
-    ).first()
+    )
 
     if existing_book:
         raise HTTPException(409, "Book already exists")
@@ -85,6 +85,15 @@ async def get_books(
     offset: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(le=10)] = 10,
 ) -> Any:
+    """Return the current user's books with pagination.
+    The first request reads from the database and stores the result in Redis.
+    Next requests with the same user, offset, and limit are returned from cache.
+    :param session dependency injection (next DI) from get_session
+    :param token DI from oauth2_schema
+    :param redis_client DI with lifespan
+    :param offset start pagination
+    :param limit max objects in the output
+    """
     user_id = decode_token(token)
 
     cache = RedisCacheClient(redis_client, settings.CACHE_TTL_SECONDS)
@@ -96,7 +105,7 @@ async def get_books(
         return cached_books
 
     # 2. Йдемо в бд якщо в кеше немає даних
-    books = session.exec(
+    books = session.scalars(
         select(Book).where(Book.user_id == user_id).offset(offset).limit(limit)
     ).all()
 
@@ -122,10 +131,11 @@ async def get_book(
         return checked_book
 
     book_db = session.get(Book, book_id)
+
     if not (book_db and book_db.user_id == user_id):
         raise HTTPException(404, "Book not found")
 
-    book_for_cache = book_db.model_dump()
+    book_for_cache = ReadBook.model_validate(book_db).model_dump()
     await cache.set_cache(cache_key, book_for_cache)
 
     return book_db
@@ -145,15 +155,30 @@ async def update_book(
     cache_key = f"book:{user_id}:{book_id}"
     cache_pattern = f"books:{user_id}:*"
 
-    book_db = session.get(Book, book_id)
+    # book_db = session.get(Book, book_id)
 
-    if not (book_db and book_db.user_id == user_id):
-        raise HTTPException(404, "Book not found")
+    # if not (book_db and book_db.user_id == user_id):
+    #     raise HTTPException(404, "Book not found")
+
+    # for k, v in updated_book.items():
+    #     setattr(book_db, k, v)
 
     updated_book = book.model_dump(exclude_unset=True)
-    book_db.sqlmodel_update(updated_book)
 
-    session.add(book_db)
+    if not updated_book:
+        raise HTTPException(400, "No fields to update")
+
+    # session.add() - робота з об'єктом ОРМ тут не потрібен, update це вираз
+    book_db = session.scalar(
+        update(Book)
+        .where(Book.user_id == user_id, Book.id == book_id)
+        .values(**updated_book)
+        .returning(Book)
+    )
+
+    if not book_db:
+        raise HTTPException(404, "You shall not pass!")
+
     try:
         session.commit()
         await cache.delete(cache_key)
@@ -161,7 +186,7 @@ async def update_book(
     except IntegrityError as e:
         session.rollback()
         raise HTTPException(422, detail=f"{e.orig}")
-    session.refresh(book_db)
+    # session.refresh(book_db) книжка вже повернена через returning()
     return book_db
 
 
